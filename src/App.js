@@ -1,17 +1,18 @@
 import React from 'react';
 import { Container } from 'react-bootstrap';
-import Header from './Components/Header';
-import CreditCardForm from './Components/CreditCardForm';
+import Header from './components/Header';
+import CreditCardForm from './components/CreditCardForm';
+import BannedCountriesProvider from './BannedCountriesContext';
 
 function App() {
 
   return (
-    <div className="App">
-      <Header />
-      <Container className="content">
+    <BannedCountriesProvider>
+      <Container>
+        <Header />
         <CreditCardForm />
       </Container>
-    </div>
+    </BannedCountriesProvider>
   );
 }
 
