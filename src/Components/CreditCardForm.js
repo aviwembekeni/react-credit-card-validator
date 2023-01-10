@@ -1,44 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Form, Alert } from 'react-bootstrap';
-import isCreditCardValid from '../Functions/isCreditCardValid';
+import isCreditCardValid from '../functions/isCreditCardValid';
 import countries from '../countries.json';
+import CreditCards from  './CreditCards';
+import { BannedCountriesContext } from '../BannedCountriesContext'
 
 function CreditCardForm() {
-  const [ country, setCoutry ] = useState({});
+  const [ country, setCountry ] = useState({});
   const [ cardNumber, setCardNumber ] = useState(null);
+  const [ creditCards, setCreditCards ] = useState([]);
+  const [ isBannedCountry, setBannedCountry ] = useState(false);
   const [ isError, setError ] = useState(false);
-
-  const handleCountry = (e) => {
-    const selectedCountryId = e.target.value;
-    const selectedCountry = countries.find(country => country.country_id === selectedCountryId);
-    console.log(selectedCountry);
-    setCoutry(selectedCountry);
-  }
+  const bannedCountries = useContext(BannedCountriesContext);
 
   const handleSubmit=(e)=>{
     e.preventDefault();
-    console.log(country);
-    console.log(cardNumber);
-    if(isCreditCardValid(cardNumber)){
-        setCardNumber(cardNumber);
-        alert("Get credit card valid: "+cardNumber);
+    const existingCCard = creditCards.find(ccard => ccard.cardNumber === cardNumber);
+    console.log('Existing c ', existingCCard);
+    if(existingCCard === undefined && isCreditCardValid(cardNumber)){
+        setCreditCards([
+          ...creditCards,
+          {
+            cardNumber,
+            country
+          }
+        ]);
     } else {
         setError(true);
     }
  }
 
-    if(isError) return (
-        <Alert variant="danger" onClose={() => setError(false)} dismissible>
-        <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
-        <p>
-          Please check your card number again
-        </p>
-      </Alert>
-    )
+ const handleCountry = (e) => {
+  const selectedCountryId = e.target.value;
+  const selectedCountry = countries.find(country => country.country_id === selectedCountryId);
+  const bannedCountry = bannedCountries.items.find(country => country.country_id === selectedCountryId);
+  if(bannedCountry) {
+    setBannedCountry(true);
+  } else {
+    setCountry(selectedCountry);
+  }
+  
+}
 
- 
+  if(isError) return (
+      <Alert variant="danger" onClose={() => setError(false)} dismissible>
+      <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+      <p>
+        It's either your card number is invalid or alredy exists
+      </p>
+    </Alert>
+  )
+
+
+  if(isBannedCountry) return (
+      <Alert variant="danger" onClose={() => setBannedCountry(false)} dismissible>
+      <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+      <p>
+        The country you selected is banned
+      </p>
+    </Alert>
+  )
 
   return (
+    <div>
       <div className="row">
         <div className="col-sm-6">
           <h3 className='mt-3'>Fill in your card details below.</h3>
@@ -46,11 +70,11 @@ function CreditCardForm() {
             <div className="col-md-12">
               <label  className="form-label"> Country</label>            
                   <div className="text-dark"> 
-                    <Form.Select aria-label="Default select example" onChange={(e)=>handleCountry(e)}>
+                    <Form.Select aria-label="Default select example" onChange={(e)=> handleCountry(e)}>
                       <option value="">--Select Country--</option>
                       {
-                      countries.map( (getcountry,index)=>(
-                        <option value={getcountry.country_id} key={index}>{getcountry.country_name}</option> 
+                      countries.map((country ,i)=>(
+                        <option value={country.country_id} key={i}>{country.country_name}</option> 
                       ))
                       }
                     </Form.Select>           
@@ -62,7 +86,7 @@ function CreditCardForm() {
                   <Form.Control type="text" placeholder="Enter Card number" onChange={(e) => setCardNumber(e.target.value)}/>       
                   </div>
             </div>
-            <div className="col-md-">
+            <div className="col-md-12">
                   <div className="text-dark"> 
                     <button name='submit' className='btn btn-success'>Submit</button>
                   </div>
@@ -70,6 +94,10 @@ function CreditCardForm() {
           </Form>
         </div>
       </div>
+      <div className="row g3">
+      <CreditCards creditCards={creditCards}/>
+      </div>
+    </div>
   );
 }
 
