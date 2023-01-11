@@ -1,22 +1,29 @@
-function isCreditCardValid(ccNum) {
+function isCreditCardValid(cardNum) {
 
-    const visaRegEx = /^(?:4[0-9]{12}(?:[0-9]{3})?)$/;
-    const mastercardRegEx = /^(?:5[1-5][0-9]{14})$/;
-    const amexpRegEx = /^(?:34[0-9]{14})$/;
-    const discovRegEx = /^(?:6(?:011|5[0-9][0-9])[0-9]{12})$/;
-    let isValid = false;
-  
-    if (visaRegEx.test(ccNum)) {
-      isValid = true;
-    } else if(mastercardRegEx.test(ccNum)) {
-      isValid = true;
-    } else if(amexpRegEx.test(ccNum)) {
-      isValid = true;
-    } else if(discovRegEx.test(ccNum)) {
-      isValid = true;
+  const cardNo = cardNum.replace(/\D/g, '');
+  const regex = new RegExp('^[4-6]\\d{3}-?\\d{4}-?\\d{4}-?\\d{4}$');
+
+  if(!regex.test(cardNo)) return false;
+
+  //use Luhn algorithm to check card's validity
+
+  let sum = 0;
+  let digit;
+  let shouldDouble;
+  for(let i = cardNo.length - 1; i>=0; i--) {
+    digit = parseInt(cardNo.charAt(i));
+    if(shouldDouble){
+      if((digit *= 2) > 9) {
+        digit -= 9;
+      }
     }
-  
-    return isValid;
+
+    sum += digit;
+    shouldDouble = !shouldDouble;
+  }
+
+  return (sum % 10) === 0;
+
   }
   
   export default isCreditCardValid;
